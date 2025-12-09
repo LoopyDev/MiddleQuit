@@ -24,3 +24,7 @@ I'm not completely familiar with sharing macOS apps, so if you have any issues i
 I don't blame you! I'm just a random guy on the internet who vibe coded a Mac app. If you prefer, build the app yourself in Xcode after ensuring there is no pesky code inside. 😄
 
 https://github.com/user-attachments/assets/b492be2e-e48f-4cf7-b7c3-b596e24f8a73
+
+# Features
+Optional: Select a modifier key to use in conjunction with the middle-click:
+<img width="479" height="263" alt="settingsPage" src="https://github.com/user-attachments/assets/6d723613-0927-4ede-a940-ae2cfb0f8320" />
