@@ -4,7 +4,7 @@
 Quit apps by middle clicking Dock items.
 
 ## Info
-The app lives in the top bar, from where you can enable launch at login, open the accessibility settings (more on that below), or quit the app.
+The app lives in the top bar, from where you can enable launch at login, open the accessibility settings (if not enabled - more on that below), set the modifier key, or quit the app.
 
 If the stock icon in the top bar bothers you, let me know and I'll bother to make an icon for it. I'm working under the assumption that nobody will care or even download this.
 
