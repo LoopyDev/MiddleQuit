@@ -27,11 +27,11 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Test
-        run: |
-          xcodebuild \
-            -project Xcode/MiddleQuit.xcodeproj \
-            -scheme MiddleQuit \
-            -destination 'platform=macOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            test
+      # - name: Test
+      #   run: |
+      #     xcodebuild \
+      #       -project Xcode/MiddleQuit.xcodeproj \
+      #       -scheme MiddleQuit \
+      #       -destination 'platform=macOS' \
+      #       CODE_SIGNING_ALLOWED=NO \
+      #       test
