@@ -5,7 +5,8 @@
 Quit apps by middle clicking Dock items. 
 
 # Help me out - I'm not greedy :)
-If you appreciate this app, consider buying me a fraction of a coffee: https://loopydev.gumroad.com/l/rmmvgk
+Build the app yourself, or get it here: https://loopydev.gumroad.com/l/rmmvgk
+(and buy me a fraction of a coffee for my efforts ☺️)
 
 # Features
 - Regular Quit, Force Quit, or both.
