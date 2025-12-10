@@ -4,6 +4,9 @@
 
 Quit apps by middle clicking Dock items. 
 
+# Help me out - I'm not greedy :)
+If you appreciate this app, consider buying me a fraction of a coffee: https://loopydev.gumroad.com/l/rmmvgk
+
 # Features
 - Regular Quit, Force Quit, or both.
 - Easy 'Launch at Login' setting
