@@ -14,8 +14,13 @@ final class EventTapManager {
         case middle = 2
     }
 
+    enum ResolvedAction {
+        case quit
+        case forceQuit
+    }
+
     // Return true to consume the event (prevent Dock from seeing it)
-    typealias MiddleClickHandler = (_ locationInScreen: CGPoint) -> Bool
+    typealias MiddleClickHandler = (_ locationInScreen: CGPoint, _ action: ResolvedAction) -> Bool
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
@@ -27,31 +32,33 @@ final class EventTapManager {
     // Public read-only: whether this tap can swallow events (depends on creation mode)
     private(set) var canSwallow = false
 
-    // Accessor for the current activation mode (injected so changes are live)
-    private var activationModeProvider: (() -> Preferences.ActivationMode)?
+    // Provider to resolve action based on current modifiers. Return nil for "no action".
+    private var actionResolver: ((NSEvent.ModifierFlags) -> ResolvedAction?)?
 
-    func start(activationMode: @escaping () -> Preferences.ActivationMode,
+    func start(resolveAction: @escaping (NSEvent.ModifierFlags) -> ResolvedAction?,
                handler: @escaping MiddleClickHandler) {
         self.handler = handler
-        self.activationModeProvider = activationMode
+        self.actionResolver = resolveAction
 
-        // Listen only for middle (other) mouse clicks, down and up.
-        let mask =
-            (1 << CGEventType.otherMouseDown.rawValue) |
-            (1 << CGEventType.otherMouseUp.rawValue)
+        // Build mask in a way that works across SDKs (UInt vs UInt64)
+        let downShift = CGEventMask(CGEventType.otherMouseDown.rawValue)
+        let upShift   = CGEventMask(CGEventType.otherMouseUp.rawValue)
+        let downBit: CGEventMask = CGEventMask(1) << downShift
+        let upBit: CGEventMask   = CGEventMask(1) << upShift
+        let mask: CGEventMask = downBit | upBit
 
         // Try session default (captures synthetic events, can swallow)
-        if createTap(tap: .cgSessionEventTap, options: .defaultTap, eventsOfInterest: CGEventMask(mask)) {
+        if createTap(tap: .cgSessionEventTap, options: .defaultTap, eventsOfInterest: mask) {
             canSwallow = true
             print("EventTap: using cgSessionEventTap (default) — can swallow")
         }
         // Else try HID default (captures hardware events, can swallow)
-        else if createTap(tap: .cghidEventTap, options: .defaultTap, eventsOfInterest: CGEventMask(mask)) {
+        else if createTap(tap: .cghidEventTap, options: .defaultTap, eventsOfInterest: mask) {
             canSwallow = true
             print("EventTap: using cghidEventTap (default) — can swallow")
         }
         // Else, try session listen-only (observe only, cannot swallow)
-        else if createTap(tap: .cgSessionEventTap, options: .listenOnly, eventsOfInterest: CGEventMask(mask)) {
+        else if createTap(tap: .cgSessionEventTap, options: .listenOnly, eventsOfInterest: mask) {
             canSwallow = false
             print("EventTap: using cgSessionEventTap (listenOnly) — cannot swallow")
         } else {
@@ -88,15 +95,16 @@ final class EventTapManager {
                         return Unmanaged.passUnretained(event)
                     }
 
-                    // Check activation mode against current modifier flags
-                    if !manager.matchesActivationMode(event: event) {
-                        return Unmanaged.passUnretained(event)
-                    }
-
                     let loc = event.location
-                    if let shouldConsume = manager.handler?(loc), shouldConsume, manager.canSwallow {
-                        manager.swallowNextOtherMouseUp = true
-                        return nil // swallow down
+
+                    // CGEvent.flags.rawValue is UInt64; NSEvent.ModifierFlags.RawValue is UInt.
+                    let flags = NSEvent.ModifierFlags(rawValue: UInt(event.flags.rawValue))
+
+                    if let action = manager.actionResolver?(flags) {
+                        if let shouldConsume = manager.handler?(loc, action), shouldConsume, manager.canSwallow {
+                            manager.swallowNextOtherMouseUp = true
+                            return nil // swallow down
+                        }
                     }
                     return Unmanaged.passUnretained(event)
                 } else {
@@ -123,28 +131,6 @@ final class EventTapManager {
         return false
     }
 
-    private func matchesActivationMode(event: CGEvent) -> Bool {
-        let flags = event.flags
-        let mode = activationModeProvider?() ?? .none
-
-        switch mode {
-        case .none:
-            // Require no primary modifiers (ignore caps lock, numeric pad, function)
-            return !flags.contains(.maskCommand)
-                && !flags.contains(.maskAlternate)
-                && !flags.contains(.maskControl)
-                && !flags.contains(.maskShift)
-        case .command:
-            return flags.contains(.maskCommand)
-        case .option:
-            return flags.contains(.maskAlternate)
-        case .control:
-            return flags.contains(.maskControl)
-        case .shift:
-            return flags.contains(.maskShift)
-        }
-    }
-
     func stop() {
         if let tap = eventTap {
             CGEvent.tapEnable(tap: tap, enable: false)
@@ -157,7 +143,7 @@ final class EventTapManager {
         handler = nil
         swallowNextOtherMouseUp = false
         canSwallow = false
-        activationModeProvider = nil
+        actionResolver = nil
     }
 }
 

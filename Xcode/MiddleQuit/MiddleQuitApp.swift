@@ -13,7 +13,6 @@ struct MiddleQuitApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        // Provide a real Settings window with a toggle for the menu bar icon
         Settings {
             SettingsView(
                 preferences: appDelegate.preferences,
@@ -22,11 +21,11 @@ struct MiddleQuitApp: App {
                 }
             )
         }
+        .windowResizability(.contentSize)
     }
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    // Make preferences internal so SettingsView can access it via appDelegate
     let preferences = Preferences()
     private let eventTapManager = EventTapManager()
     private let dockHelper = DockAccessibilityHelper()
@@ -34,9 +33,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let launchAtLogin = LaunchAtLoginManager()
     private var statusController: StatusItemController!
 
-    // Polling timer to detect when AX trust flips to true after prompting
     private var axPollingTimer: Timer?
-    // Guard to avoid starting the tap twice
     private var hasStartedEventTap = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -75,14 +72,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             isLaunchAtLoginEnabled: { [weak self] in
                 return self?.launchAtLogin.isEnabled ?? false
             },
-            getActivationMode: { [weak self] in
-                self?.preferences.activationMode ?? .none
-            },
-            onSetActivationMode: { [weak self] mode in
-                guard let self else { return }
-                self.preferences.activationMode = mode
-                // EventTapManager reads mode dynamically
-            },
             onQuit: {
                 NSApp.terminate(nil)
             }
@@ -94,7 +83,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Accessibility flow (Option C)
 
-    // Show the system-managed AX prompt and auto-start when trust becomes true.
     private func promptForAccessibilityAndAutoStart() {
         NSApp.activate(ignoringOtherApps: true)
 
@@ -163,19 +151,52 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         hasStartedEventTap = true
 
-        // Rebuild menu so the "Open Accessibility Settings" item disappears
         statusController.rebuildMenu()
 
-        eventTapManager.start(activationMode: { [weak self] in
-            self?.preferences.activationMode ?? .none
-        }) { [weak self] point in
-            guard let self else { return false }
-            if let pid = self.dockHelper.pidForDockTile(at: point) {
-                self.quitController.gracefulQuit(pid: pid)
-                return self.eventTapManager.canSwallow
+        eventTapManager.start(
+            resolveAction: { [weak self] flags in
+                guard let self else { return nil }
+
+                // Choose a single effective modifier (priority: ⌘ > ⌥ > ⌃ > ⇧ > none)
+                func effectiveModifier(from flags: NSEvent.ModifierFlags) -> Preferences.ActivationChoice {
+                    if flags.contains(.command) { return .command }
+                    if flags.contains(.option)  { return .option }
+                    if flags.contains(.control) { return .control }
+                    if flags.contains(.shift)   { return .shift }
+                    return .none
+                }
+
+                let eff = effectiveModifier(from: flags)
+                let quitChoice = self.preferences.quitActivation
+                let forceChoice = self.preferences.forceActivation
+
+                // If both are set to the same non-disabled choice, do nothing until resolved.
+                if quitChoice == forceChoice, quitChoice != .disabled {
+                    return nil
+                }
+
+                if eff == quitChoice, quitChoice != .disabled {
+                    return .quit
+                }
+                if eff == forceChoice, forceChoice != .disabled {
+                    return .forceQuit
+                }
+                return nil
+            },
+            handler: { [weak self] point, action in
+                guard let self else { return false }
+                if let pid = self.dockHelper.pidForDockTile(at: point) {
+                    switch action {
+                    case .quit:
+                        self.quitController.gracefulQuit(pid: pid)
+                    case .forceQuit:
+                        self.quitController.forceQuit(pid: pid)
+                    }
+                    return self.eventTapManager.canSwallow
+                }
+                return false
             }
-            return false
-        }
+        )
     }
 
     func applyStatusItemVisibility(show: Bool) {
@@ -193,3 +214,4 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         eventTapManager.stop()
     }
 }
+

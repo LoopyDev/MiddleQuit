@@ -12,4 +12,13 @@ final class QuitController {
         guard let app = NSRunningApplication(processIdentifier: pid) else { return }
         app.terminate()
     }
+
+    func forceQuit(pid: pid_t) {
+        guard let app = NSRunningApplication(processIdentifier: pid) else { return }
+        if !app.forceTerminate() {
+            // Fallback if needed
+            kill(app.processIdentifier, SIGKILL)
+        }
+    }
 }
+
