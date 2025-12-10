@@ -3,6 +3,8 @@
 
 Quit apps by middle clicking Dock items.
 
+Force Quit with or without modifier keys coming very soon! 
+
 ## Info
 The app lives in the top bar, from where you can enable launch at login, open the accessibility settings (if not enabled - more on that below), set the modifier key, or quit the app.
 
