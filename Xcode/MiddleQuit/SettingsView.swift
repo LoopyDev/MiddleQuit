@@ -11,18 +11,33 @@ struct SettingsView: View {
     let preferences: Preferences
     let onToggleShowIcon: (Bool) -> Void
 
+    // New for launch at login
+    let isLaunchAtLoginEnabled: () -> Bool
+    let onToggleLaunchAtLogin: () -> Void
+
     @State private var showStatusItem: Bool
 
     // Per-action activations
     @State private var quitActivation: Preferences.ActivationChoice
     @State private var forceActivation: Preferences.ActivationChoice
 
-    init(preferences: Preferences, onToggleShowIcon: @escaping (Bool) -> Void) {
+    @State private var launchAtLoginEnabled: Bool
+
+    init(
+        preferences: Preferences,
+        onToggleShowIcon: @escaping (Bool) -> Void,
+        isLaunchAtLoginEnabled: @escaping () -> Bool,
+        onToggleLaunchAtLogin: @escaping () -> Void
+    ) {
         self.preferences = preferences
         self.onToggleShowIcon = onToggleShowIcon
+        self.isLaunchAtLoginEnabled = isLaunchAtLoginEnabled
+        self.onToggleLaunchAtLogin = onToggleLaunchAtLogin
         _showStatusItem = State(initialValue: preferences.showStatusItem)
         _quitActivation = State(initialValue: preferences.quitActivation)
         _forceActivation = State(initialValue: preferences.forceActivation)
+        // Query at init; update as user toggles
+        _launchAtLoginEnabled = State(initialValue: isLaunchAtLoginEnabled())
     }
 
     var body: some View {
@@ -30,7 +45,6 @@ struct SettingsView: View {
             // GENERAL
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    // Option label not bold
                     Toggle("Show menu bar icon", isOn: Binding(
                         get: { showStatusItem },
                         set: { newValue in
@@ -39,9 +53,16 @@ struct SettingsView: View {
                             onToggleShowIcon(newValue)
                         }
                     ))
+                    // --- Launch at Login Toggle ---
+                    Toggle("Launch at Login", isOn: Binding(
+                        get: { launchAtLoginEnabled },
+                        set: { newValue in
+                            onToggleLaunchAtLogin()
+                            launchAtLoginEnabled = isLaunchAtLoginEnabled()
+                        }
+                    ))
                 }
             } header: {
-                // Heading bold
                 Text("General")
                     .font(.headline)
             }
@@ -49,7 +70,6 @@ struct SettingsView: View {
             // ACTIVATION
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    // Option label not bold
                     Text("Quit")
                     Picker("", selection: Binding(
                         get: { quitActivation },
@@ -68,7 +88,6 @@ struct SettingsView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    // Option label not bold
                     Text("Force Quit")
                     Picker("", selection: Binding(
                         get: { forceActivation },
@@ -86,18 +105,19 @@ struct SettingsView: View {
                     .frame(maxWidth: 320, alignment: .leading)
                 }
             } header: {
-                // Heading bold, with extra separation from General
                 Text("Activation")
                     .font(.headline)
                     .padding(.top, 16)
             }
         }
-        .padding(.vertical, 8)
-        .frame(width: 520, height: 280)
+        // Increased vertical padding for top and bottom
+        .padding(.vertical, 20)
+        .frame(width: 396, height: 236)
+        .onAppear {
+            launchAtLoginEnabled = isLaunchAtLoginEnabled()
+        }
     }
 
-    // Build options list excluding the other picker's current selection,
-    // but keep the current selection so the Picker remains valid even if prefs conflict.
     private func optionsExcluding(
         otherSelection: Preferences.ActivationChoice,
         currentSelection: Preferences.ActivationChoice
@@ -109,7 +129,6 @@ struct SettingsView: View {
         }
     }
 
-    // Labels shown in the menus
     private func label(for choice: Preferences.ActivationChoice) -> String {
         switch choice {
         case .disabled: return "Disabled"
@@ -124,5 +143,10 @@ struct SettingsView: View {
 
 #Preview {
     let prefs = Preferences()
-    return SettingsView(preferences: prefs, onToggleShowIcon: { _ in })
+    SettingsView(
+        preferences: prefs,
+        onToggleShowIcon: { _ in },
+        isLaunchAtLoginEnabled: { false },
+        onToggleLaunchAtLogin: {}
+    )
 }

@@ -105,11 +105,13 @@ final class StatusItemController: NSObject {
 
             let hosting = NSHostingController(rootView: SettingsView(
                 preferences: self.preferences,
-                onToggleShowIcon: self.onToggleShowIcon
+                onToggleShowIcon: self.onToggleShowIcon,
+                isLaunchAtLoginEnabled: self.isLaunchAtLoginEnabled,
+                onToggleLaunchAtLogin: self.onToggleLaunchAtLogin
             ))
 
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 560, height: 320),
+                contentRect: NSRect(x: 0, y: 0, width: 396, height: 236),
                 styleMask: [.titled, .closable, .miniaturizable],
                 backing: .buffered,
                 defer: false
@@ -151,4 +153,3 @@ final class StatusItemController: NSObject {
         onQuit()
     }
 }
-
