@@ -1,14 +1,19 @@
+<img width="256" height="256" alt="App Icon" src="https://github.com/user-attachments/assets/f312eefa-01ee-469d-9c97-7e95fecd8804" />
 
-# MiddleQuit<img width="512" height="512" alt="512_512" src="https://github.com/user-attachments/assets/f312eefa-01ee-469d-9c97-7e95fecd8804" />
+# MiddleQuit
 
-Quit apps by middle clicking Dock items.
+Quit apps by middle clicking Dock items. 
 
-Force Quit with or without modifier keys coming very soon! 
+# Features
+- Regular Quit, Force Quit, or both.
+- Easy 'Launch at Login' setting
+- Hide icon from Menu Bar
+- Modifier keys assignable in app settings
 
 ## Info
-The app lives in the top bar, from where you can enable launch at login, open the accessibility settings (if not enabled - more on that below), set the modifier key, or quit the app.
+The app lives in the top bar, from where you can enable launch at login, open the accessibility settings (if not enabled - more on that below), open settings, or quit the app.
 
-If the stock icon in the top bar bothers you, let me know and I'll bother to make an icon for it. I'm working under the assumption that nobody will care or even download this.
+If the stock icon in the top bar bothers you, let me know and I'll bother to make an icon for it. I'm working under the assumption that people will hide it from the top bar. 
 
 ## Installation
 When you first open the app, it will ask you to enable Accessibility permissions. This is standard for apps like these, so they can interfere with regular input processes. After enabling, quit and restart the app.
@@ -20,6 +25,8 @@ I'm not completely familiar with sharing macOS apps, so if you have any issues i
 ##
 **Tested on macOS Tahoe 26.1**, (M4 MacBook air + a third-party app which enables middle click on the touchpad)
 
+**Currently reported not working on Sequoia**
+
 (let me know your system and if it works on it, I can add to this list)
 
 ## Don't trust me?
@@ -27,6 +34,5 @@ I don't blame you! I'm just a random guy on the internet who vibe coded a Mac ap
 
 https://github.com/user-attachments/assets/b492be2e-e48f-4cf7-b7c3-b596e24f8a73
 
-# Features
-Optional: Select a modifier key to use in conjunction with the middle-click:
-<img width="479" height="263" alt="settingsPage" src="https://github.com/user-attachments/assets/6d723613-0927-4ede-a940-ae2cfb0f8320" />
+# Settings
+<img width="566" height="406" alt="settingsPage" src="https://github.com/user-attachments/assets/8567c05d-df59-4693-bf5a-b5687f435c26" />
