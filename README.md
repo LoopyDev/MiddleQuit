@@ -26,10 +26,11 @@ If you choose to download and run the pre-built app, when initially opening it, 
 
 I'm not completely familiar with sharing macOS apps, so if you have any issues installing, open an issue and hopefully we can work through it together. 
 
-##
-**Tested on macOS Tahoe 26.1**, (M4 MacBook air + a third-party app which enables middle click on the touchpad)
+## Compatibility
+**Tahoe 26.1**
+**Sequoia 15.6.1**
 
-**Currently reported not working on Sequoia**
+**Currently reported not working on Sonoma** (but I am working on it)
 
 (let me know your system and if it works on it, I can add to this list)
 
