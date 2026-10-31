@@ -19,7 +19,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.applyStatusItemVisibility(show: show)
             },
             onOpenAccessibility: { [weak self] in
-                self?.promptForAccessibilityAndAutoStart()
+                self?.openAccessibilitySettings()
+                self?.beginAXTrustPolling(interval: 0.5)
             },
             onToggleLaunchAtLogin: { [weak self] in
                 guard let self else { return }
@@ -55,11 +56,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         applyStatusItemVisibility(show: preferences.showStatusItem)
         ensureAccessibilityAndStart()
+
+        if !DockAccessibilityHelper.isAXEnabled() {
+            // Defer until launch has finished, as the alert runs modally
+            DispatchQueue.main.async { [weak self] in
+                self?.promptForAccessibilityAndAutoStart()
+            }
+        }
     }
 
     // MARK: - Accessibility flow
 
     private func promptForAccessibilityAndAutoStart() {
+        // Keep watching even if the alert is cancelled, so enabling it later still starts the app
+        beginAXTrustPolling(interval: 0.5)
+
         NSApp.activate(ignoringOtherApps: true)
 
         let alert = NSAlert()
@@ -72,10 +83,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard response == .alertFirstButtonReturn else { return }
 
         DockAccessibilityHelper.requestAXPermissionIfNeeded()
-        beginAXTrustPolling(timeout: 30.0, interval: 0.5)
+        beginAXTrustPolling(interval: 0.5, fallbackAfter: 30.0)
     }
 
-    private func beginAXTrustPolling(timeout: TimeInterval, interval: TimeInterval) {
+    // Polls until Accessibility is enabled. The fallback alert is offered once, and polling continues after it.
+    private func beginAXTrustPolling(interval: TimeInterval, fallbackAfter: TimeInterval? = nil) {
         axPollingTimer?.invalidate()
 
         if DockAccessibilityHelper.isAXEnabled() {
@@ -83,7 +95,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        let deadline = Date().addingTimeInterval(timeout)
+        var deadline = fallbackAfter.map { Date().addingTimeInterval($0) }
 
         axPollingTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] timer in
             guard let self else { return }
@@ -91,9 +103,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 timer.invalidate()
                 self.axPollingTimer = nil
                 self.ensureAccessibilityAndStart()
-            } else if Date() >= deadline {
-                timer.invalidate()
-                self.axPollingTimer = nil
+            } else if let fallbackDate = deadline, Date() >= fallbackDate {
+                deadline = nil
                 self.offerAccessibilitySettingsFallback()
             }
         }
@@ -111,6 +122,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let result = fallback.runModal()
         guard result == .alertFirstButtonReturn else { return }
 
+        openAccessibilitySettings()
+    }
+
+    private func openAccessibilitySettings() {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
             NSWorkspace.shared.open(url)
         }
