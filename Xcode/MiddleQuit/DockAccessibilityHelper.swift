@@ -99,38 +99,36 @@ final class DockAccessibilityHelper {
 
     private func resolveRunningAppPID(from element: AXUIElement) -> pid_t? {
         // Strategy:
-        // 1) Try to get a precise title from the element.
-        // 2) If empty, check immediate children for a title (common pattern for Dock items).
-        // 3) Match that title to running apps by exact equality, and only if the match is unique.
+        // 1) Find the application tile at or above the element. This skips folders,
+        //    minimized windows and the Trash, whose titles could match a running app.
+        // 2) Read the app's URL from the tile. Dock titles can differ from the app's
+        //    name (e.g. "Visual Studio Code" is "Code"), so titles aren't reliable.
+        // 3) Match that URL to running apps, and only if the match is unique.
         // 4) Otherwise, do nothing.
 
-        if let title = nonEmptyTitle(of: element),
-           let pid = uniqueRunningAppPID(matchingExactTitle: title) {
-            return pid
+        guard let tile = applicationDockItem(containing: element),
+              let url = urlAttribute(kAXURLAttribute as CFString, of: tile) else {
+            return nil
         }
+        return uniqueRunningAppPID(matchingBundleURL: url)
+    }
 
-        if let children = arrayAttribute(kAXChildrenAttribute as CFString, of: element) as? [AXUIElement] {
-            for child in children {
-                if let t = nonEmptyTitle(of: child),
-                   let pid = uniqueRunningAppPID(matchingExactTitle: t) {
-                    return pid
-                }
+    private func applicationDockItem(containing element: AXUIElement) -> AXUIElement? {
+        var current: AXUIElement? = element
+        while let c = current {
+            if stringAttribute(kAXSubroleAttribute as CFString, of: c) == kAXApplicationDockItemSubrole {
+                return c
             }
-        }
-
-        // No confident resolution
-        return nil
-    }
-
-    private func nonEmptyTitle(of element: AXUIElement) -> String? {
-        if let s = stringAttribute(kAXTitleAttribute as CFString, of: element), !s.isEmpty {
-            return s
+            current = parent(of: c)
         }
         return nil
     }
 
-    private func uniqueRunningAppPID(matchingExactTitle title: String) -> pid_t? {
-        let matches = NSWorkspace.shared.runningApplications.filter { $0.localizedName == title }
+    private func uniqueRunningAppPID(matchingBundleURL url: URL) -> pid_t? {
+        let target = url.standardizedFileURL.resolvingSymlinksInPath()
+        let matches = NSWorkspace.shared.runningApplications.filter {
+            $0.bundleURL?.standardizedFileURL.resolvingSymlinksInPath() == target
+        }
         if matches.count == 1, let pid = matches.first?.processIdentifier {
             return pid
         }
@@ -146,11 +144,11 @@ final class DockAccessibilityHelper {
         return nil
     }
 
-    private func arrayAttribute(_ attr: CFString, of element: AXUIElement) -> [AnyObject]? {
+    private func urlAttribute(_ attr: CFString, of element: AXUIElement) -> URL? {
         var value: AnyObject?
         let err = AXUIElementCopyAttributeValue(element, attr, &value)
-        if err == .success, let arr = value as? [AnyObject] {
-            return arr
+        if err == .success, let url = value as? URL {
+            return url
         }
         return nil
     }
