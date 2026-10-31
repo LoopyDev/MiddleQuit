@@ -10,7 +10,7 @@ import AppKit
 
 final class Preferences {
     private let defaults = UserDefaults.standard
-    private let showKey = "showStatusItem"
+    static let showKey = "showStatusItem"
 
     // Keys for per-action activations
     private let quitActivationKey = "quitActivation"
@@ -41,13 +41,13 @@ final class Preferences {
 
     var showStatusItem: Bool {
         get {
-            if defaults.object(forKey: showKey) == nil {
+            if defaults.object(forKey: Self.showKey) == nil {
                 return true
             }
-            return defaults.bool(forKey: showKey)
+            return defaults.bool(forKey: Self.showKey)
         }
         set {
-            defaults.set(newValue, forKey: showKey)
+            defaults.set(newValue, forKey: Self.showKey)
         }
     }
 

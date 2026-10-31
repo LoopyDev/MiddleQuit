@@ -68,6 +68,7 @@ final class StatusItemController: NSObject {
                                       action: #selector(toggleShowIcon),
                                       keyEquivalent: "")
         showIconItem.target = self
+        showIconItem.toolTip = "To get back to Settings, open MiddleQuit again."
         menu.addItem(showIconItem)
 
         // Only show Accessibility Settings if not yet enabled.
@@ -92,7 +93,7 @@ final class StatusItemController: NSObject {
         item.menu = menu
     }
 
-    @objc private func openSettings() {
+    @objc func openSettings() {
         NSApp.activate(ignoringOtherApps: true)
 
         // Defer until after the status menu closes

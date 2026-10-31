@@ -15,7 +15,8 @@ struct SettingsView: View {
     let isLaunchAtLoginEnabled: () -> Bool
     let onToggleLaunchAtLogin: () -> Void
 
-    @State private var showStatusItem: Bool
+    // Follows the saved value, so the menu bar menu's toggle shows up here too
+    @AppStorage(Preferences.showKey) private var showStatusItem = true
 
     // Per-action activations
     @State private var quitActivation: Preferences.ActivationChoice
@@ -33,7 +34,6 @@ struct SettingsView: View {
         self.onToggleShowIcon = onToggleShowIcon
         self.isLaunchAtLoginEnabled = isLaunchAtLoginEnabled
         self.onToggleLaunchAtLogin = onToggleLaunchAtLogin
-        _showStatusItem = State(initialValue: preferences.showStatusItem)
         _quitActivation = State(initialValue: preferences.quitActivation)
         _forceActivation = State(initialValue: preferences.forceActivation)
         // Query at init; update as user toggles
@@ -49,10 +49,10 @@ struct SettingsView: View {
                         get: { showStatusItem },
                         set: { newValue in
                             showStatusItem = newValue
-                            preferences.showStatusItem = newValue
                             onToggleShowIcon(newValue)
                         }
                     ))
+                    .help("When hidden, open MiddleQuit again to get back to Settings.")
                     // --- Launch at Login Toggle ---
                     Toggle("Launch at Login", isOn: Binding(
                         get: { launchAtLoginEnabled },

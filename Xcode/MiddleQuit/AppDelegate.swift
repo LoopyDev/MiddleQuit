@@ -54,6 +54,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         )
 
+        NSApp.setActivationPolicy(.accessory)
         applyStatusItemVisibility(show: preferences.showStatusItem)
         ensureAccessibilityAndStart()
 
@@ -191,11 +192,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applyStatusItemVisibility(show: Bool) {
         if show {
             statusController.show()
-            NSApp.setActivationPolicy(.accessory)
         } else {
             statusController.hide()
-            NSApp.setActivationPolicy(.prohibited)
         }
+    }
+
+    // Opening the app again is the way back to Settings when the menu bar icon is hidden
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        statusController.openSettings()
+        return false
     }
 
     func applicationWillTerminate(_ notification: Notification) {
