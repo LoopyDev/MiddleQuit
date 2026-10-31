@@ -39,7 +39,8 @@ final class StatusItemController: NSObject {
         if statusItem == nil {
             statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
             if let button = statusItem?.button {
-                button.image = NSImage(systemSymbolName: "circle.grid.3x3", accessibilityDescription: "MiddleQuit")
+                button.image = NSImage(named: "MenuBarIcon")
+                button.image?.accessibilityDescription = "MiddleQuit"
                 button.imagePosition = .imageOnly
             }
             rebuildMenu()
