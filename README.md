@@ -17,8 +17,6 @@ Build the app yourself, or get it here: https://loopydev.gumroad.com/l/rmmvgk
 ## Info
 The app lives in the top bar, from where you can enable launch at login, open the accessibility settings (if not enabled - more on that below), open settings, or quit the app.
 
-If the stock icon in the top bar bothers you, let me know and I'll bother to make an icon for it. I'm working under the assumption that people will hide it from the top bar. 
-
 ## Installation
 When you first open the app, it will ask you to enable Accessibility permissions. This is standard for apps like these, so they can interfere with regular input processes. MiddleQuit starts working as soon as you enable it.
 
