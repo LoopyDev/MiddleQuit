@@ -20,7 +20,7 @@ The app lives in the top bar, from where you can enable launch at login, open th
 If the stock icon in the top bar bothers you, let me know and I'll bother to make an icon for it. I'm working under the assumption that people will hide it from the top bar. 
 
 ## Installation
-When you first open the app, it will ask you to enable Accessibility permissions. This is standard for apps like these, so they can interfere with regular input processes. After enabling, quit and restart the app.
+When you first open the app, it will ask you to enable Accessibility permissions. This is standard for apps like these, so they can interfere with regular input processes. MiddleQuit starts working as soon as you enable it.
 
 If you choose to download and run the pre-built app, when initially opening it, you will need to manually allow it to run (Apple could not verify “MiddleQuit.app” is free of malware that may harm your Mac or compromise your privacy.) by going to System Settings -> Privacy & Security -> Scroll down to 'Security' and allow it there. 
 
