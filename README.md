@@ -11,7 +11,7 @@ Build the app yourself, or get it here: https://loopydev.gumroad.com/l/rmmvgk
 # Features
 - Regular Quit, Force Quit, or both.
 - Easy 'Launch at Login' setting
-- Hide icon from Menu Bar
+- Hide icon from Menu Bar (open the app again to get back to Settings)
 - Modifier keys assignable in app settings
 
 ## Info
