@@ -34,33 +34,14 @@ final class DockAccessibilityHelper {
 
     // Given a screen point (from CGEvent), determine if it's over a Dock tile and return PID if resolvable
     func pidForDockTile(at screenPoint: CGPoint) -> pid_t? {
-        // Try both coordinate variants: as-is and flipped, to handle differences across macOS versions.
-        let candidates = [screenPoint, convertToAXScreenPoint(screenPoint)]
+        // CGEvent and AX both use top-left origin global coordinates, so no conversion is needed.
+        guard let element = elementAtScreenPoint(screenPoint) else { return nil }
 
-        for point in candidates {
-            guard let element = elementAtScreenPoint(point) else { continue }
+        // Ensure the element belongs to the Dock
+        guard isElementInDock(element) else { return nil }
 
-            // Ensure the element belongs to the Dock
-            guard isElementInDock(element) else { continue }
-
-            // Attempt to resolve a running app PID conservatively.
-            if let pid = resolveRunningAppPID(from: element) {
-                return pid
-            }
-        }
-
-        return nil
-    }
-
-    // MARK: - Coordinate conversion
-
-    private func convertToAXScreenPoint(_ cgPoint: CGPoint) -> CGPoint {
-        // AX APIs typically use a top-left origin global coordinate space,
-        // while many Cocoa points are bottom-left. Flip Y using the union of all screens.
-        let union = NSScreen.screens.reduce(into: CGRect.null) { partialResult, screen in
-            partialResult = partialResult.union(screen.frame)
-        }
-        return CGPoint(x: cgPoint.x, y: union.maxY - cgPoint.y)
+        // Attempt to resolve a running app PID conservatively.
+        return resolveRunningAppPID(from: element)
     }
 
     // MARK: - AX helpers
