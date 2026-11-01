@@ -2,7 +2,7 @@
 
 # MiddleQuit
 
-Quit apps by middle clicking Dock items, or tapping them with three fingers on a trackpad. No other apps needed.
+Quit apps by middle clicking them in the Dock, with a mouse or with a three-finger tap on a trackpad. It can also give your trackpad a middle click everywhere, so you don't need another app for that.
 
 # Help me out - I'm not greedy :)
 Build the app yourself, or get it here: https://loopydev.gumroad.com/l/rmmvgk
@@ -10,7 +10,9 @@ Build the app yourself, or get it here: https://loopydev.gumroad.com/l/rmmvgk
 
 # Features
 - Regular Quit, Force Quit, or both.
-- Three-finger tap on a trackpad, with an optional setting to use it as a middle click everywhere
+- Works with any mouse that has a middle button (usually pressing the scroll wheel)
+- Three-finger tap on a trackpad, no other apps needed
+- Optional middle click everywhere: three-finger tap to open links in new tabs, close tabs, and so on
 - Easy 'Launch at Login' setting
 - Hide icon from Menu Bar (open the app again to get back to Settings)
 - Modifier keys assignable in app settings
