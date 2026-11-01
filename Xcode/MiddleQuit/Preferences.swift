@@ -11,6 +11,9 @@ import AppKit
 final class Preferences {
     private let defaults = UserDefaults.standard
     static let showKey = "showStatusItem"
+    static let threeFingerTapKey = "threeFingerTap"
+    static let threeFingerEverywhereKey = "threeFingerMiddleClickEverywhere"
+    private let setupGuideKey = "hasSeenSetupGuide"
 
     // Keys for per-action activations
     private let quitActivationKey = "quitActivation"
@@ -49,6 +52,28 @@ final class Preferences {
         set {
             defaults.set(newValue, forKey: Self.showKey)
         }
+    }
+
+    var threeFingerTap: Bool {
+        get {
+            if defaults.object(forKey: Self.threeFingerTapKey) == nil {
+                return true
+            }
+            return defaults.bool(forKey: Self.threeFingerTapKey)
+        }
+        set {
+            defaults.set(newValue, forKey: Self.threeFingerTapKey)
+        }
+    }
+
+    var threeFingerMiddleClickEverywhere: Bool {
+        get { defaults.bool(forKey: Self.threeFingerEverywhereKey) }
+        set { defaults.set(newValue, forKey: Self.threeFingerEverywhereKey) }
+    }
+
+    var hasSeenSetupGuide: Bool {
+        get { defaults.bool(forKey: setupGuideKey) }
+        set { defaults.set(newValue, forKey: setupGuideKey) }
     }
 
     // Default: Quit = Middle Click, Force Quit = Option + click
