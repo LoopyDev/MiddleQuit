@@ -13,6 +13,8 @@ final class StatusItemController: NSObject {
     private let preferences: Preferences
     private let onToggleShowIcon: (Bool) -> Void
     private let onOpenAccessibility: () -> Void
+    private let onShowSetupGuide: () -> Void
+    private let onToggleThreeFingerTap: () -> Void
     private let onToggleLaunchAtLogin: () -> Void
     private let isLaunchAtLoginEnabled: () -> Bool
     private let onQuit: () -> Void
@@ -23,12 +25,16 @@ final class StatusItemController: NSObject {
     init(preferences: Preferences,
          onToggleShowIcon: @escaping (Bool) -> Void,
          onOpenAccessibility: @escaping () -> Void,
+         onShowSetupGuide: @escaping () -> Void,
+         onToggleThreeFingerTap: @escaping () -> Void,
          onToggleLaunchAtLogin: @escaping () -> Void,
          isLaunchAtLoginEnabled: @escaping () -> Bool,
          onQuit: @escaping () -> Void) {
         self.preferences = preferences
         self.onToggleShowIcon = onToggleShowIcon
         self.onOpenAccessibility = onOpenAccessibility
+        self.onShowSetupGuide = onShowSetupGuide
+        self.onToggleThreeFingerTap = onToggleThreeFingerTap
         self.onToggleLaunchAtLogin = onToggleLaunchAtLogin
         self.isLaunchAtLoginEnabled = isLaunchAtLoginEnabled
         self.onQuit = onQuit
@@ -62,6 +68,10 @@ final class StatusItemController: NSObject {
         let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
+
+        let guideItem = NSMenuItem(title: "Show Setup Guide", action: #selector(showSetupGuide), keyEquivalent: "")
+        guideItem.target = self
+        menu.addItem(guideItem)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -108,12 +118,13 @@ final class StatusItemController: NSObject {
             let hosting = NSHostingController(rootView: SettingsView(
                 preferences: self.preferences,
                 onToggleShowIcon: self.onToggleShowIcon,
+                onToggleThreeFingerTap: self.onToggleThreeFingerTap,
                 isLaunchAtLoginEnabled: self.isLaunchAtLoginEnabled,
                 onToggleLaunchAtLogin: self.onToggleLaunchAtLogin
             ))
 
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 396, height: 236),
+                contentRect: NSRect(x: 0, y: 0, width: 396, height: SettingsView.windowHeight),
                 styleMask: [.titled, .closable, .miniaturizable],
                 backing: .buffered,
                 defer: false
@@ -140,6 +151,10 @@ final class StatusItemController: NSObject {
         preferences.showStatusItem = newValue
         onToggleShowIcon(newValue)
         rebuildMenu()
+    }
+
+    @objc private func showSetupGuide() {
+        onShowSetupGuide()
     }
 
     @objc private func openAX() {

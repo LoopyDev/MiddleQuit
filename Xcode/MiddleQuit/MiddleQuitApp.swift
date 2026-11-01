@@ -19,6 +19,9 @@ struct MiddleQuitApp: App {
                 onToggleShowIcon: { show in
                     appDelegate.applyStatusItemVisibility(show: show)
                 },
+                onToggleThreeFingerTap: {
+                    appDelegate.applyThreeFingerTap()
+                },
                 isLaunchAtLoginEnabled: {
                     appDelegate.launchAtLogin.isEnabled
                 },

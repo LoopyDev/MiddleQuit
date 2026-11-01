@@ -2,7 +2,7 @@
 
 # MiddleQuit
 
-Quit apps by middle clicking Dock items. 
+Quit apps by middle clicking them in the Dock, with a mouse or with a three-finger tap on a trackpad. It can also give your trackpad a middle click everywhere, so you don't need another app for that.
 
 # Help me out - I'm not greedy :)
 Build the app yourself, or get it here: https://loopydev.gumroad.com/l/rmmvgk
@@ -10,6 +10,9 @@ Build the app yourself, or get it here: https://loopydev.gumroad.com/l/rmmvgk
 
 # Features
 - Regular Quit, Force Quit, or both.
+- Works with any mouse that has a middle button (usually pressing the scroll wheel)
+- Three-finger tap on a trackpad, no other apps needed
+- Optional middle click everywhere: three-finger tap to open links in new tabs, close tabs, and so on
 - Easy 'Launch at Login' setting
 - Hide icon from Menu Bar (open the app again to get back to Settings)
 - Modifier keys assignable in app settings
@@ -23,6 +26,11 @@ When you first open the app, it will ask you to enable Accessibility permissions
 If you choose to download and run the pre-built app, when initially opening it, you will need to manually allow it to run (Apple could not verify “MiddleQuit.app” is free of malware that may harm your Mac or compromise your privacy.) by going to System Settings -> Privacy & Security -> Scroll down to 'Security' and allow it there. 
 
 I'm not completely familiar with sharing macOS apps, so if you have any issues installing, open an issue and hopefully we can work through it together. 
+
+## Trackpads
+Three-finger taps work out of the box, and a short guide shows you how on first launch. Turn on "Use it as a middle click everywhere" to replace apps like MiddleClick. If one is still running, MiddleQuit drops the duplicate click.
+
+Reading trackpad touches relies on a private Apple framework, so a macOS update could stop this working until MiddleQuit is updated. Everything else, including real middle clicks, would carry on as normal.
 
 ## Compatibility
 - Tahoe 26.1

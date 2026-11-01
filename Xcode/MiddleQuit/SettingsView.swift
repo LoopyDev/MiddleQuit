@@ -8,8 +8,11 @@
 import SwiftUI
 
 struct SettingsView: View {
+    static var windowHeight: CGFloat { TrackpadMonitor.hasTrackpad ? 330 : 236 }
+
     let preferences: Preferences
     let onToggleShowIcon: (Bool) -> Void
+    let onToggleThreeFingerTap: () -> Void
 
     // New for launch at login
     let isLaunchAtLoginEnabled: () -> Bool
@@ -17,6 +20,8 @@ struct SettingsView: View {
 
     // Follows the saved value, so the menu bar menu's toggle shows up here too
     @AppStorage(Preferences.showKey) private var showStatusItem = true
+    @AppStorage(Preferences.threeFingerTapKey) private var threeFingerTap = true
+    @AppStorage(Preferences.threeFingerEverywhereKey) private var threeFingerEverywhere = false
 
     // Per-action activations
     @State private var quitActivation: Preferences.ActivationChoice
@@ -27,11 +32,13 @@ struct SettingsView: View {
     init(
         preferences: Preferences,
         onToggleShowIcon: @escaping (Bool) -> Void,
+        onToggleThreeFingerTap: @escaping () -> Void,
         isLaunchAtLoginEnabled: @escaping () -> Bool,
         onToggleLaunchAtLogin: @escaping () -> Void
     ) {
         self.preferences = preferences
         self.onToggleShowIcon = onToggleShowIcon
+        self.onToggleThreeFingerTap = onToggleThreeFingerTap
         self.isLaunchAtLoginEnabled = isLaunchAtLoginEnabled
         self.onToggleLaunchAtLogin = onToggleLaunchAtLogin
         _quitActivation = State(initialValue: preferences.quitActivation)
@@ -65,6 +72,28 @@ struct SettingsView: View {
             } header: {
                 Text("General")
                     .font(.headline)
+            }
+
+            // TRACKPAD
+            if TrackpadMonitor.hasTrackpad {
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Toggle("Three-finger tap acts as middle click on the Dock", isOn: Binding(
+                            get: { threeFingerTap },
+                            set: { newValue in
+                                threeFingerTap = newValue
+                                onToggleThreeFingerTap()
+                            }
+                        ))
+                        Toggle("Use it as a middle click everywhere", isOn: $threeFingerEverywhere)
+                            .disabled(!threeFingerTap)
+                            .help("Replaces apps like MiddleClick, which you can then remove.")
+                    }
+                } header: {
+                    Text("Trackpad")
+                        .font(.headline)
+                        .padding(.top, 16)
+                }
             }
 
             // ACTIVATION
@@ -112,7 +141,7 @@ struct SettingsView: View {
         }
         // Increased vertical padding for top and bottom
         .padding(.vertical, 20)
-        .frame(width: 396, height: 236)
+        .frame(width: 396, height: Self.windowHeight)
         .onAppear {
             launchAtLoginEnabled = isLaunchAtLoginEnabled()
         }
@@ -146,6 +175,7 @@ struct SettingsView: View {
     SettingsView(
         preferences: prefs,
         onToggleShowIcon: { _ in },
+        onToggleThreeFingerTap: {},
         isLaunchAtLoginEnabled: { false },
         onToggleLaunchAtLogin: {}
     )

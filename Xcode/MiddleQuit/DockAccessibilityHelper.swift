@@ -23,8 +23,24 @@ final class DockAccessibilityHelper {
         AXUIElementCreateSystemWide()
     }
 
+    // AXIsProcessTrusted keeps answering true after the permission is removed from a running app,
+    // so also ask the system for an event tap, which it refuses straight away.
     static func isAXEnabled() -> Bool {
-        AXIsProcessTrusted()
+        AXIsProcessTrusted() && canCreateEventTap()
+    }
+
+    private static func canCreateEventTap() -> Bool {
+        // Listens for an event nothing sends, and is gone before it could ever be delivered
+        let unusedEvent = CGEventMask(1) << CGEventMask(CGEventType.tabletProximity.rawValue)
+        guard let tap = CGEvent.tapCreate(tap: .cgSessionEventTap, place: .tailAppendEventTap, options: .defaultTap,
+                                          eventsOfInterest: unusedEvent, callback: { _, _, event, _ in
+            Unmanaged.passUnretained(event)
+        }, userInfo: nil) else {
+            return false
+        }
+        CGEvent.tapEnable(tap: tap, enable: false)
+        CFMachPortInvalidate(tap)
+        return true
     }
 
     static func requestAXPermissionIfNeeded() {
