@@ -39,3 +39,11 @@ https://github.com/user-attachments/assets/b492be2e-e48f-4cf7-b7c3-b596e24f8a73
 
 # Settings
 <img width="566" height="406" alt="settingsPage" src="https://github.com/user-attachments/assets/8567c05d-df59-4693-bf5a-b5687f435c26" />
+
+
+# License
+Copyright (C) 2025-2026 LoopyDev
+
+MiddleQuit is free software, released under the [GNU General Public License v3.0](LICENSE) or any later version.
+
+Versions up to and including 1.0 were released under the MIT License, and that code remains available under those terms. Everything from 1.1 onwards is GPLv3.
