@@ -8,11 +8,13 @@ import SwiftUI
 
 final class SetupGuideModel: ObservableObject {
     let hasTrackpad: Bool
+    let gesture: Preferences.ThreeFingerGesture
     @Published var finished = false
     @Published var lookUpConflict = false
 
-    init(hasTrackpad: Bool) {
+    init(hasTrackpad: Bool, gesture: Preferences.ThreeFingerGesture) {
         self.hasTrackpad = hasTrackpad
+        self.gesture = gesture
         refresh()
     }
 
@@ -21,7 +23,7 @@ final class SetupGuideModel: ObservableObject {
     }
 
     func refresh() {
-        lookUpConflict = hasTrackpad && TrackpadSettings.threeFingerTapIsLookUp
+        lookUpConflict = hasTrackpad && gesture == .tap && TrackpadSettings.threeFingerTapIsLookUp
     }
 }
 
@@ -73,9 +75,9 @@ struct SetupGuideView: View {
 
             GestureAnimation(hasTrackpad: model.hasTrackpad)
 
-            Text(model.hasTrackpad
-                 ? "Point at an app in the Dock, then tap the trackpad with three fingers."
-                 : "Point at an app in the Dock, then click the middle mouse button.")
+            Text(!model.hasTrackpad ? "Point at an app in the Dock, then click the middle mouse button."
+                 : model.gesture == .press ? "Point at an app in the Dock, then press down on the trackpad with three fingers."
+                 : "Point at an app in the Dock, then tap the trackpad with three fingers.")
                 .multilineTextAlignment(.center)
 
             if model.finished {
@@ -116,14 +118,14 @@ final class SetupGuideController {
     private var model: SetupGuideModel?
     private var observers: [NSObjectProtocol] = []
 
-    func show(hasTrackpad: Bool) {
+    func show(hasTrackpad: Bool, gesture: Preferences.ThreeFingerGesture) {
         NSApp.activate(ignoringOtherApps: true)
         if let window {
             window.makeKeyAndOrderFront(nil)
             return
         }
 
-        let model = SetupGuideModel(hasTrackpad: hasTrackpad)
+        let model = SetupGuideModel(hasTrackpad: hasTrackpad, gesture: gesture)
         let hosting = NSHostingController(rootView: SetupGuideView(model: model) { [weak self] in
             self?.close()
         })

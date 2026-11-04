@@ -25,7 +25,8 @@ final class EventTapManager {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
 
-    // Left clicks get their own tap, enabled only while three fingers are down. Every click on the Mac
+    // Left and right clicks get their own tap, enabled only while three fingers are down. A press with
+    // several fingers counts as a right-click when secondary click is on. Every click on the Mac
     // waits on an enabled tap, so if the permission ever goes, an always-on one would stop all clicking.
     private var clickTap: CFMachPort?
     private var clickRunLoopSource: CFRunLoopSource?
@@ -33,7 +34,7 @@ final class EventTapManager {
     var onTapDisabled: (() -> Void)?
     private var handler: MiddleClickHandler?
 
-    // Three-finger physical clicks arrive as left clicks, so these tell the tap when to treat one as a middle click
+    // Three-finger presses arrive as ordinary clicks, so these tell the tap when to treat one as a middle click
     var isThreeFingerClick: (() -> Bool)?
     var didThreeFingerClick: (() -> Void)?
     var convertsThreeFingerClicks: (() -> Bool)?
@@ -46,8 +47,8 @@ final class EventTapManager {
 
     // Track whether to swallow the matching mouseUp for a handled click
     private var swallowNextOtherMouseUp = false
-    private var swallowNextLeftMouseUp = false
-    private var convertNextLeftMouseUp = false
+    private var swallowNextClickUp = false
+    private var convertNextClickUp = false
 
     // Public read-only: whether this tap can swallow events (depends on creation mode)
     private(set) var canSwallow = false
@@ -89,8 +90,8 @@ final class EventTapManager {
 
     private func createClickTap() {
         guard canSwallow else { return }
-        let mask = (CGEventMask(1) << CGEventMask(CGEventType.leftMouseDown.rawValue))
-            | (CGEventMask(1) << CGEventMask(CGEventType.leftMouseUp.rawValue))
+        let mask = [CGEventType.leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp]
+            .reduce(CGEventMask(0)) { $0 | (CGEventMask(1) << CGEventMask($1.rawValue)) }
         guard let tapPort = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
@@ -99,10 +100,10 @@ final class EventTapManager {
             callback: { _, type, event, refcon in
                 guard let refcon else { return Unmanaged.passUnretained(event) }
                 let manager = Unmanaged<EventTapManager>.fromOpaque(refcon).takeUnretainedValue()
-                guard type == .leftMouseDown || type == .leftMouseUp else {
+                guard [.leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp].contains(type) else {
                     return Unmanaged.passUnretained(event)
                 }
-                let result = manager.handleLeftClick(type: type, event: event)
+                let result = manager.handleThreeFingerClick(type: type, event: event)
                 manager.updateClickTap()
                 return result
             },
@@ -126,7 +127,7 @@ final class EventTapManager {
     // Stays on past the fingers lifting if a click is still waiting for its mouse-up
     private func updateClickTap() {
         guard let clickTap else { return }
-        CGEvent.tapEnable(tap: clickTap, enable: threeFingersDown || swallowNextLeftMouseUp || convertNextLeftMouseUp)
+        CGEvent.tapEnable(tap: clickTap, enable: threeFingersDown || swallowNextClickUp || convertNextClickUp)
     }
 
     private func createTap(tap: CGEventTapLocation, options: CGEventTapOptions, eventsOfInterest: CGEventMask) -> Bool {
@@ -208,14 +209,14 @@ final class EventTapManager {
         return last.ours != ours && Date().timeIntervalSince(last.time) < duplicateClickWindow
     }
 
-    private func handleLeftClick(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
-        if type == .leftMouseUp {
-            if swallowNextLeftMouseUp {
-                swallowNextLeftMouseUp = false
+    private func handleThreeFingerClick(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+        if type == .leftMouseUp || type == .rightMouseUp {
+            if swallowNextClickUp {
+                swallowNextClickUp = false
                 return nil
             }
-            if convertNextLeftMouseUp {
-                convertNextLeftMouseUp = false
+            if convertNextClickUp {
+                convertNextClickUp = false
                 convertToMiddleClick(event, type: .otherMouseUp)
             }
             return Unmanaged.passUnretained(event)
@@ -228,11 +229,11 @@ final class EventTapManager {
 
         let flags = NSEvent.ModifierFlags(rawValue: UInt(event.flags.rawValue))
         if let action = actionResolver?(flags), handler?(event.location, action) == true, canSwallow {
-            swallowNextLeftMouseUp = true
+            swallowNextClickUp = true
             return nil
         }
         if convertsThreeFingerClicks?() == true {
-            convertNextLeftMouseUp = true
+            convertNextClickUp = true
             convertToMiddleClick(event, type: .otherMouseDown)
         }
         return Unmanaged.passUnretained(event)
@@ -269,8 +270,8 @@ final class EventTapManager {
         threeFingersDown = false
         handler = nil
         swallowNextOtherMouseUp = false
-        swallowNextLeftMouseUp = false
-        convertNextLeftMouseUp = false
+        swallowNextClickUp = false
+        convertNextClickUp = false
         canSwallow = false
         actionResolver = nil
     }
