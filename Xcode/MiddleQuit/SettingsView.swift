@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    static var windowHeight: CGFloat { TrackpadMonitor.hasTrackpad ? 330 : 236 }
+    static var windowHeight: CGFloat { TrackpadMonitor.hasTrackpad ? 392 : 236 }
 
     let preferences: Preferences
     let onToggleShowIcon: (Bool) -> Void
@@ -22,6 +22,7 @@ struct SettingsView: View {
     @AppStorage(Preferences.showKey) private var showStatusItem = true
     @AppStorage(Preferences.threeFingerTapKey) private var threeFingerTap = true
     @AppStorage(Preferences.threeFingerEverywhereKey) private var threeFingerEverywhere = false
+    @AppStorage(Preferences.threeFingerGestureKey) private var threeFingerGesture = Preferences.ThreeFingerGesture.tap.rawValue
 
     // Per-action activations
     @State private var quitActivation: Preferences.ActivationChoice
@@ -78,13 +79,25 @@ struct SettingsView: View {
             if TrackpadMonitor.hasTrackpad {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
-                        Toggle("Three-finger tap acts as middle click on the Dock", isOn: Binding(
+                        Toggle("Three fingers act as a middle click on the Dock", isOn: Binding(
                             get: { threeFingerTap },
                             set: { newValue in
                                 threeFingerTap = newValue
                                 onToggleThreeFingerTap()
                             }
                         ))
+                        Text("Gesture")
+                            .foregroundStyle(threeFingerTap ? .primary : .secondary)
+                        // Unlabelled like the Activation pickers: a labelled one adds a column and shifts the toggles
+                        Picker("", selection: $threeFingerGesture) {
+                            Text("Tap").tag(Preferences.ThreeFingerGesture.tap.rawValue)
+                            Text("Press").tag(Preferences.ThreeFingerGesture.press.rawValue)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                        .frame(maxWidth: 200, alignment: .leading)
+                        .disabled(!threeFingerTap)
+                        .help("A press needs a firm click, so a light accidental touch won't quit anything.")
                         Toggle("Use it as a middle click everywhere", isOn: $threeFingerEverywhere)
                             .disabled(!threeFingerTap)
                             .help("Replaces apps like MiddleClick, which you can then remove.")

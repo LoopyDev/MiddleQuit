@@ -374,7 +374,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handleThreeFingerTap() {
-        guard let point = CGEvent(source: nil)?.location else { return }
+        guard preferences.threeFingerGesture == .tap, let point = CGEvent(source: nil)?.location else { return }
 
         if preferences.threeFingerMiddleClickEverywhere {
             eventTapManager.postMiddleClick(at: point)
@@ -388,7 +388,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func showSetupGuide() {
-        setupGuide.show(hasTrackpad: TrackpadMonitor.hasTrackpad && preferences.threeFingerTap)
+        setupGuide.show(hasTrackpad: TrackpadMonitor.hasTrackpad && preferences.threeFingerTap,
+                        gesture: preferences.threeFingerGesture)
     }
 
     func applyStatusItemVisibility(show: Bool) {

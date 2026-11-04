@@ -13,6 +13,7 @@ final class Preferences {
     static let showKey = "showStatusItem"
     static let threeFingerTapKey = "threeFingerTap"
     static let threeFingerEverywhereKey = "threeFingerMiddleClickEverywhere"
+    static let threeFingerGestureKey = "threeFingerGesture"
     private let setupGuideKey = "hasSeenSetupGuide"
 
     // Keys for per-action activations
@@ -64,6 +65,16 @@ final class Preferences {
         set {
             defaults.set(newValue, forKey: Self.threeFingerTapKey)
         }
+    }
+
+    // A press is a physical click, so a light accidental touch can't trigger it
+    enum ThreeFingerGesture: String, CaseIterable {
+        case tap, press
+    }
+
+    var threeFingerGesture: ThreeFingerGesture {
+        get { defaults.string(forKey: Self.threeFingerGestureKey).flatMap(ThreeFingerGesture.init) ?? .tap }
+        set { defaults.set(newValue.rawValue, forKey: Self.threeFingerGestureKey) }
     }
 
     var threeFingerMiddleClickEverywhere: Bool {
