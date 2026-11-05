@@ -5,8 +5,8 @@
 Quit apps by middle clicking them in the Dock, with a mouse or with a three-finger tap on a trackpad. It can also give your trackpad a middle click everywhere, so you don't need another app for that.
 
 # Help me out - I'm not greedy :)
-Build the app yourself, or get it here: https://loopydev.gumroad.com/l/rmmvgk
-(and buy me a fraction of a coffee for my efforts ☺️)
+Build the app yourself, or get it here: https://middlequit.app
+(and buy me a coffee for my efforts ☺️)
 
 # Features
 - Regular Quit, Force Quit, or both.
