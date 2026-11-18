@@ -22,6 +22,9 @@ final class StatusItemController: NSObject {
     // Keep a reference to our Settings window so we can reuse/focus it
     private var settingsWindow: NSWindow?
 
+    // Kept so its checkmark can be refreshed each time the menu opens
+    private var launchAtLoginItem: NSMenuItem?
+
     init(preferences: Preferences,
          onToggleShowIcon: @escaping (Bool) -> Void,
          onOpenAccessibility: @escaping () -> Void,
@@ -94,6 +97,7 @@ final class StatusItemController: NSObject {
         launchAtLoginItem.target = self
         launchAtLoginItem.state = isLaunchAtLoginEnabled() ? .on : .off
         menu.addItem(launchAtLoginItem)
+        self.launchAtLoginItem = launchAtLoginItem
 
         menu.addItem(NSMenuItem.separator())
 
@@ -101,6 +105,7 @@ final class StatusItemController: NSObject {
         quitItem.target = self
         menu.addItem(quitItem)
 
+        menu.delegate = self
         item.menu = menu
     }
 
@@ -108,7 +113,9 @@ final class StatusItemController: NSObject {
         NSApp.activate(ignoringOtherApps: true)
 
         // Defer until after the status menu closes
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+
             if let existing = self.settingsWindow {
                 existing.makeKeyAndOrderFront(nil)
                 NSApp.activate(ignoringOtherApps: true)
@@ -168,5 +175,13 @@ final class StatusItemController: NSObject {
 
     @objc private func quitApp() {
         onQuit()
+    }
+}
+
+extension StatusItemController: NSMenuDelegate {
+    // The login item can be toggled from Settings (or System Settings) without
+    // the menu being rebuilt, so read the live status right before showing it.
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        launchAtLoginItem?.state = isLaunchAtLoginEnabled() ? .on : .off
     }
 }
